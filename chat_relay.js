@@ -29,10 +29,19 @@ wss.on("connection", (socket) => {
     const now = Date.now();
     if (now - lastSent < COOLDOWN_MS) return;
     lastSent = now;
+    // Optional quoted message this one replies to.
+    let reply;
+    if (data.reply && typeof data.reply === "object" && typeof data.reply.text === "string") {
+      reply = {
+        name: String(data.reply.name || "?").slice(0, 32),
+        text: data.reply.text.slice(0, 120),
+      };
+    }
     const out = JSON.stringify({
       userId: Number(data.userId) || 0,
       name: String(data.name || "?").slice(0, 32),
       text,
+      reply,
     });
     history.push(out);
     if (history.length > HISTORY_SIZE) history.shift();
