@@ -1,0 +1,7 @@
+{
+  "name": "salad-chat-relay",
+  "version": "1.0.0",
+  "main": "chat_relay.js",
+  "scripts": { "start": "node chat_relay.js" },
+  "dependencies": { "ws": "^8.18.0" }
+}
