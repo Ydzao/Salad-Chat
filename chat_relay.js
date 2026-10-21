@@ -5,6 +5,10 @@ const { WebSocketServer } = require("ws");
 const PORT = process.env.PORT || 8080;
 const COOLDOWN_MS = 5000;
 const MAX_LENGTH = 200;
+const HISTORY_SIZE = 300;
+
+// Last messages, replayed to every new connection so a fresh account sees the chat.
+const history = [];
 
 // Plain HTTP answer so Render's health check and a browser visit get "ok".
 const server = http.createServer((req, res) => {
@@ -15,6 +19,7 @@ const wss = new WebSocketServer({ server });
 
 wss.on("connection", (socket) => {
   let lastSent = 0;
+  for (const old of history) socket.send(old);
   socket.on("message", (raw) => {
     let data;
     try { data = JSON.parse(raw.toString()); } catch { return; }
@@ -29,6 +34,8 @@ wss.on("connection", (socket) => {
       name: String(data.name || "?").slice(0, 32),
       text,
     });
+    history.push(out);
+    if (history.length > HISTORY_SIZE) history.shift();
     for (const client of wss.clients) {
       if (client.readyState === 1) client.send(out);
     }
